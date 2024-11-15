@@ -10,6 +10,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use App\Core\Invoice\Domain\Status\InvoiceStatus;
+use InvalidArgumentException;
 
 #[AsCommand(
     name: 'app:invoice:get-by-status-and-amount',
@@ -24,8 +26,18 @@ class GetInvoices extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $amount = (int) $input->getArgument('amount');
+        $status = strtolower($input->getArgument('status'));
+
+        try {
+            $invoiceStatus = InvoiceStatus::from($status);
+        } catch (\ValueError $e) {
+            throw new InvalidArgumentException("Wrong status: {$status}. Available statuses: new, paid, canceled.");
+        }
+
         $invoices = $this->bus->dispatch(new GetInvoicesByStatusAndAmountGreaterQuery(
-            $input->getArgument('amount')
+            $amount,
+            $invoiceStatus,
         ));
 
         /** @var InvoiceDTO $invoice */

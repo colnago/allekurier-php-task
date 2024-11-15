@@ -1,1 +1,7 @@
 .DS_Store
+/vendor
+/.env
+.idea
+/mysql
+/var
+/composer.lock
